@@ -7,7 +7,7 @@ import Statistics from './pages/Statistics';
 import Settings from './pages/Settings';
 import Backup from './pages/Backup';
 import Restore from './pages/Restore';
-import BottomNav from './components/BottomNav';
+import BottomNavigation from './components/BottomNavigation';
 
 const App: React.FC = () => {
   return (
@@ -24,7 +24,7 @@ const App: React.FC = () => {
         </Routes>
       </main>
 
-      <BottomNav />
+      <BottomNavigation />
     </div>
   );
 };

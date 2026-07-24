@@ -1,24 +1,25 @@
 import React from 'react';
-import Card from './Card';
 
 type Props = {
   label: string;
   value: string | number;
-  accent?: boolean;
   className?: string;
+  accent?: boolean;
 };
 
-const StatCard: React.FC<Props> = ({ label, value, accent, className = '' }) => {
+const StatCard: React.FC<Props> = ({ label, value, className = '', accent = false }) => {
   return (
-    <Card className={`flex flex-col justify-between ${className}`}>
+    <div className={`bg-gradient-to-b from-black/20 to-black/40 border border-black/30 rounded-2xl p-4 ${className}`}>
       <div className="flex items-center justify-between">
-        <div className="text-xs text-muted text-gray-300">{label}</div>
-        {accent && <div className="text-xs text-aegis-gold-100 font-medium">PRIORITY</div>}
+        <div>
+          <div className="text-xs text-gray-300">{label}</div>
+        </div>
+        {accent && <div className="text-xs text-aegis-gold-100 font-semibold">PRIORITY</div>}
       </div>
       <div className="mt-3">
-        <div className="text-2xl font-bold text-aegis-gold-100">{value}</div>
+        <div className="text-2xl md:text-3xl font-bold text-aegis-gold-100">{value}</div>
       </div>
-    </Card>
+    </div>
   );
 };
 
