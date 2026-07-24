@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --gold: #d4af37;
+  --bg: #0b0b0b;
+  --muted: #999081;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+.bg-aegis {
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.18)), var(--bg);
+}
+
+/* small helper */
+.text-gold { color: var(--gold); }
