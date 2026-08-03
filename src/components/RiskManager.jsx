@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
 
 export default function RiskManager() {
-  const [balance, setBalance] = useState<number>(() => Number(localStorage.getItem('aegis_balance')) || 53.08);
-  const [entry, setEntry] = useState<string>('');
-  const [stopLoss, setStopLoss] = useState<string>('');
-  const [takeProfit, setTakeProfit] = useState<string>('');
-  const [tradeType, setTradeType] = useState<'LONG' | 'SHORT'>('LONG');
+  const [balance, setBalance] = useState(() => Number(localStorage.getItem('aegis_balance')) || 53.08);
+  const [entry, setEntry] = useState('');
+  const [stopLoss, setStopLoss] = useState('');
+  const [takeProfit, setTakeProfit] = useState('');
+  const [tradeType, setTradeType] = useState('LONG');
 
   useEffect(() => {
     localStorage.setItem('aegis_balance', balance.toString());
   }, [balance]);
   
-  const riskPercent = 1; // Strict 1% risk rule
+  const riskPercent = 1; 
   const riskAmount = balance * (riskPercent / 100);
   
   let lotSize = 0;
@@ -21,12 +21,10 @@ export default function RiskManager() {
 
   if (entry && stopLoss && Number(entry) !== Number(stopLoss)) {
     pointDistance = Math.abs(Number(entry) - Number(stopLoss));
-    // XAUUSD: 1 Standard Lot (100 oz) -> $1 move = $100 profit/loss.
-    const riskPerStandardLot = pointDistance * 100;
+    const riskPerStandardLot = pointDistance * 100; 
     
     if (riskPerStandardLot > 0) {
       const rawLot = riskAmount / riskPerStandardLot;
-      // Enforce standard broker minimum lot size of 0.01
       lotSize = Math.max(0.01, Number(rawLot.toFixed(2)));
     }
   }
@@ -47,7 +45,6 @@ export default function RiskManager() {
       </div>
 
       <div className="space-y-4">
-        {/* Balance & Direction */}
         <div className="flex gap-3">
           <div className="flex-1">
             <label className="block text-xs text-slate-400 mb-1">Account Balance ($)</label>
@@ -62,7 +59,7 @@ export default function RiskManager() {
             <label className="block text-xs text-slate-400 mb-1">Direction</label>
             <select 
               value={tradeType} 
-              onChange={(e) => setTradeType(e.target.value as 'LONG' | 'SHORT')}
+              onChange={(e) => setTradeType(e.target.value)}
               className={`w-full bg-slate-950 border border-slate-700 rounded p-2 outline-none font-bold ${tradeType === 'LONG' ? 'text-green-500' : 'text-red-500'}`}
             >
               <option value="LONG">LONG</option>
@@ -71,7 +68,6 @@ export default function RiskManager() {
           </div>
         </div>
 
-        {/* Entry / Stop Loss with 3-decimal step support */}
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="block text-xs text-slate-400 mb-1">Entry Price</label>
@@ -109,7 +105,6 @@ export default function RiskManager() {
           />
         </div>
 
-        {/* Results Box */}
         <div className="bg-slate-950 p-4 rounded-lg border border-slate-800 space-y-2 mt-4">
           <div className="flex justify-between items-center text-sm">
             <span className="text-slate-400">Max Risk (1%)</span>
