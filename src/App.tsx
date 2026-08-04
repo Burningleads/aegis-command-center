@@ -6,7 +6,6 @@ import NewMissionForm from './pages/MissionLog';
 import MissionHistory from './pages/History';
 import Statistics from './pages/Statistics';
 import { DebriefModal } from './components/DebriefModal';
-import { useMissions, type MissionInput, type DebriefInput } from './hooks/useMissions';
 
 const SUBTITLES: Record<TabId, string> = {
   dashboard: 'Command Center',
