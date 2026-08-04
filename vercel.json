@@ -3,7 +3,6 @@
   "outputDirectory": "dist",
   "devCommand": "npm run dev",
   "installCommand": "npm install",
-  "envPrefix": "VITE_",
   "functions": {
     "api/**/*.ts": {
       "runtime": "nodejs18.x"
