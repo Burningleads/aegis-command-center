@@ -1,6 +1,5 @@
 import { type ReactNode } from 'react';
 import { ShieldAlert, Inbox, Activity, Clock, ArrowRight, Flame, FilePlus2 } from 'lucide-react';
-import { useInView } from '../hooks/useInView';
 import { useCountUp } from '../hooks/useCountUp';
 import type { Mission, Stats } from '../types';
 import { activeSession, todaysRisk, todaysConfidence } from '../lib/missions';
