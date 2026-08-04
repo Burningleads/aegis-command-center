@@ -7,7 +7,6 @@ import MissionHistory from './pages/History';
 import Statistics from './pages/Statistics';
 import { DebriefModal } from './components/DebriefModal';
 import { useMissions, type MissionInput, type DebriefInput } from './hooks/useMissions';
-import { computeStats } from './lib/missions';
 
 const SUBTITLES: Record<TabId, string> = {
   dashboard: 'Command Center',
@@ -28,7 +27,20 @@ export default function App() {
   const [debriefId, setDebriefId] = useState<string | null>(null);
   const { missions, loaded, addMission, setStatus, completeMission, deleteMission } = useMissions();
 
-  const stats = useMemo(() => computeStats(missions), [missions]);
+  // Self-contained stats calculation to prevent missing file errors
+  const stats = useMemo(() => {
+    const closed = missions.filter((m: any) => m.status === 'Closed' || m.result);
+    const wins = closed.filter((m: any) => m.result === 'Win' || (m.pnlR && m.pnlR > 0));
+    const winRate = closed.length > 0 ? Math.round((wins.length / closed.length) * 100) : 0;
+    const totalPnlR = missions.reduce((acc: number, m: any) => acc + (m.pnlR || 0), 0);
+    return {
+      totalMissions: missions.length,
+      closedMissions: closed.length,
+      winRate,
+      totalPnlR,
+    };
+  }, [missions]);
+
   const debriefMission = useMemo(
     () => missions.find((m) => m.id === debriefId) ?? null,
     [missions, debriefId]
