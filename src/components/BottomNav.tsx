@@ -1,66 +1,51 @@
-import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { LayoutDashboard, FilePlus2, History, BarChart3 } from 'lucide-react';
 
-const items = [
-  { to: '/', label: 'Dashboard', icon: DashboardIcon },
-  { to: '/missions', label: 'Missions', icon: ListIcon },
-  { to: '/history', label: 'History', icon: ClockIcon },
-  { to: '/stats', label: 'Stats', icon: ChartIcon }
+export type TabId = 'dashboard' | 'log' | 'history' | 'stats';
+
+interface NavProps {
+  active: TabId;
+  onChange: (tab: TabId) => void;
+}
+
+const TABS: { id: TabId; label: string; icon: typeof LayoutDashboard }[] = [
+  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { id: 'log', label: 'Mission Log', icon: FilePlus2 },
+  { id: 'history', label: 'History', icon: History },
+  { id: 'stats', label: 'Stats', icon: BarChart3 },
 ];
 
-export default function BottomNav() {
+export function BottomNav({ active, onChange }: NavProps) {
   return (
-    <nav className="fixed bottom-4 left-4 right-4 bg-black/50 border border-black/40 rounded-3xl backdrop-blur-md p-2 flex justify-between md:relative md:left-0 md:right-0 md:bottom-0 md:rounded-none">
-      {items.map((it) => (
-        <NavLink
-          key={it.to}
-          to={it.to}
-          className={({ isActive }) =>
-            'flex-1 text-center py-2 rounded-xl text-xs ' + (isActive ? 'text-aegis-gold-100 font-semibold' : 'text-gray-300')
-          }
-        >
-          <div className="flex flex-col items-center">
-            <it.icon className="w-6 h-6 mb-1" />
-            <span>{it.label}</span>
-          </div>
-        </NavLink>
-      ))}
+    <nav className="fixed bottom-0 left-1/2 z-50 w-full max-w-shell -translate-x-1/2 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2">
+      <div className="relative flex items-center justify-between rounded-2xl border border-white/10 bg-black/85 px-1.5 py-1.5 backdrop-blur-xl shadow-[0_-8px_40px_-12px_rgba(0,0,0,0.8)]">
+        {TABS.map((tab) => {
+          const isActive = active === tab.id;
+          const Icon = tab.icon;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => onChange(tab.id)}
+              className="relative flex flex-1 flex-col items-center gap-1 rounded-xl py-2 transition-colors"
+              aria-label={tab.label}
+            >
+              {isActive && (
+                <span className="absolute inset-0 rounded-xl bg-gradient-to-b from-gold-400/15 to-gold-400/[0.04] ring-1 ring-gold-400/25" />
+              )}
+              <Icon
+                className={`relative h-5 w-5 transition-colors ${isActive ? 'text-gold-300' : 'text-white/40'}`}
+                strokeWidth={isActive ? 2.2 : 1.8}
+              />
+              <span
+                className={`relative text-[9px] font-semibold uppercase tracking-[0.1em] transition-colors ${
+                  isActive ? 'text-gold-300' : 'text-white/40'
+                }`}
+              >
+                {tab.label}
+              </span>
+            </button>
+          );
+        })}
+      </div>
     </nav>
-  );
-}
-
-/* Icons */
-function DashboardIcon(props: any) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" {...props}>
-      <rect x="3" y="3" width="7" height="9" rx="1" strokeWidth="1.5"></rect>
-      <rect x="14" y="3" width="7" height="5" rx="1" strokeWidth="1.5"></rect>
-      <rect x="14" y="12" width="7" height="9" rx="1" strokeWidth="1.5"></rect>
-      <rect x="3" y="14" width="7" height="6" rx="1" strokeWidth="1.5"></rect>
-    </svg>
-  );
-}
-function ListIcon(props: any) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" {...props}>
-      <path d="M8 6h13M8 12h13M8 18h13" strokeWidth="1.5" strokeLinecap="round"></path>
-      <path d="M3 6h.01M3 12h.01M3 18h.01" strokeWidth="1.5" strokeLinecap="round"></path>
-    </svg>
-  );
-}
-function ClockIcon(props: any) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" {...props}>
-      <circle cx="12" cy="12" r="9" strokeWidth="1.5"></circle>
-      <path d="M12 7v6l4 2" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
-    </svg>
-  );
-}
-function ChartIcon(props: any) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" {...props}>
-      <path d="M3 3v18h18" strokeWidth="1.5"></path>
-      <path d="M7 13v6M12 9v10M17 5v14" strokeWidth="1.5" strokeLinecap="round"></path>
-    </svg>
   );
 }

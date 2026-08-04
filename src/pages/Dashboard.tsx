@@ -1,209 +1,147 @@
-import React, { useState, useEffect } from 'react';
+import { type ReactNode } from 'react';
+import { ShieldAlert, Inbox, Activity, Clock, ArrowRight, Flame, FilePlus2 } from 'lucide-react';
+import { useInView } from '../hooks/useInView';
+import { useCountUp } from '../hooks/useCountUp';
+import type { Mission, Stats } from '../types';
+import { activeSession, todaysRisk, todaysConfidence } from '../lib/missions';
+import { Button } from './Button';
 
-export default function Dashboard() {
-  const [balance, setBalance] = useState(() => Number(localStorage.getItem('aegis_balance')) || 53.08);
-  const [missions, setMissions] = useState(() => {
-    const saved = localStorage.getItem('aegis_missions');
-    return saved ? JSON.parse(saved) : [];
-  });
+interface DashboardProps {
+  missions: Mission[];
+  stats: Stats;
+  onNewMission: () => void;
+}
 
-  const [entry, setEntry] = useState('');
-  const [stopLoss, setStopLoss] = useState('');
-  const [takeProfit, setTakeProfit] = useState('');
-  const [tradeType, setTradeType] = useState('SHORT');
-  const [note, setNote] = useState('');
-  const [grade, setGrade] = useState('B');
-
-  useEffect(() => {
-    localStorage.setItem('aegis_balance', balance.toString());
-    localStorage.setItem('aegis_missions', JSON.stringify(missions));
-  }, [balance, missions]);
-
-  const riskAmount = balance * 0.01;
-  let pointDistance = 0;
-  let lotSize = 0;
-  let rrRatio = 0;
-
-  if (entry && stopLoss && Number(entry) !== Number(stopLoss)) {
-    pointDistance = Math.abs(Number(entry) - Number(stopLoss));
-    const riskPerStandardLot = pointDistance * 100;
-    if (riskPerStandardLot > 0) {
-      lotSize = Math.max(0.01, Number((riskAmount / riskPerStandardLot).toFixed(2)));
-    }
-  }
-
-  if (entry && stopLoss && takeProfit) {
-    const profitDiff = Math.abs(Number(takeProfit) - Number(entry));
-    if (pointDistance > 0) rrRatio = Number((profitDiff / pointDistance).toFixed(2));
-  }
-
-  const handleLogMission = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!entry || !stopLoss) return;
-
-    const newMission = {
-      id: Date.now(),
-      type: tradeType,
-      entry: Number(entry),
-      sl: Number(stopLoss),
-      tp: Number(takeProfit || 0),
-      lot: lotSize > 0 ? lotSize : 0.01,
-      status: 'OPEN',
-      grade: grade,
-      note: note || 'PDH Sweep Execution'
-    };
-
-    setMissions([newMission, ...missions]);
-    setEntry('');
-    setStopLoss('');
-    setTakeProfit('');
-    setNote('');
-  };
-
-  const closedTrades = missions.filter((m: any) => m.status === 'CLOSED');
-  const winCount = closedTrades.filter((m: any) => m.pnl > 0).length;
-  const winRate = closedTrades.length > 0 ? Math.round((winCount / closedTrades.length) * 100) : 100;
+function Card({
+  label,
+  value,
+  icon,
+  children,
+  accent = 'neutral',
+  delay = 0,
+}: {
+  label: string;
+  value: ReactNode;
+  icon: ReactNode;
+  children?: ReactNode;
+  accent?: 'gold' | 'neutral' | 'positive' | 'warning';
+  delay?: number;
+}) {
+  const accentColor =
+    accent === 'gold'
+      ? 'text-gold-300'
+      : accent === 'positive'
+      ? 'text-emerald-400'
+      : accent === 'warning'
+      ? 'text-amber-400'
+      : 'text-white/90';
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 pb-32 px-4 pt-4 max-w-xl mx-auto font-sans">
-      
-      {/* Top Header */}
-      <div className="flex justify-between items-center border-b border-slate-800 pb-3 mb-4">
-        <div>
-          <h1 className="text-lg font-bold tracking-tight text-white">Aegis OS</h1>
-          <p className="text-xs text-slate-400">XAUUSD Active Terminal</p>
-        </div>
-        <div className="text-right">
-          <div className="text-xs text-slate-400">Equity Balance ($)</div>
-          <input 
-            type="number" 
-            value={balance} 
-            onChange={(e) => setBalance(Number(e.target.value))}
-            className="bg-slate-900 text-yellow-400 font-mono text-sm font-bold w-24 text-right border border-slate-800 rounded px-1 outline-none focus:border-yellow-500"
-          />
-        </div>
+    <div
+      className="aegis-reveal group relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.06] to-white/[0.02] p-4 backdrop-blur-sm transition-all duration-300 hover:border-gold-400/30"
+      style={{ animationDelay: `${delay}s` }}
+    >
+      <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-gold-400/5 blur-2xl transition-opacity duration-300 group-hover:bg-gold-400/10" />
+      <div className="flex items-start justify-between">
+        <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/45">
+          {label}
+        </span>
+        <span className={`${accentColor} opacity-70`}>{icon}</span>
+      </div>
+      <div className={`mt-3 font-display text-2xl font-semibold ${accentColor}`}>{value}</div>
+      {children && <div className="mt-2">{children}</div>}
+    </div>
+  );
+}
+
+export function Dashboard({ missions, stats, onNewMission }: DashboardProps) {
+  const { ref, inView } = useInView();
+  const risk = useCountUp(todaysRisk(missions), inView);
+  const confidence = Math.round(useCountUp(todaysConfidence(missions), inView));
+  const session = activeSession();
+  const openCount = stats.active + stats.planned;
+  const riskLevel = risk >= 3 ? 4 : risk >= 1.5 ? 2 : 1;
+
+  return (
+    <div className="animate-tab-in space-y-5">
+      <div className="px-1 pt-1">
+        <p className="text-sm text-white/45">Welcome back, Trader.</p>
+        <h1 className="mt-1 font-display text-2xl font-bold tracking-tight text-white">
+          Command Center
+        </h1>
       </div>
 
-      {/* Quick Metrics */}
-      <div className="grid grid-cols-3 gap-2 mb-4">
-        <div className="bg-slate-900 p-3 rounded-lg border border-slate-800">
-          <div className="text-[10px] text-slate-400 uppercase tracking-wider">Missions</div>
-          <div className="text-lg font-bold text-white">{missions.length}</div>
-        </div>
-        <div className="bg-slate-900 p-3 rounded-lg border border-slate-800">
-          <div className="text-[10px] text-slate-400 uppercase tracking-wider">Win Rate</div>
-          <div className="text-lg font-bold text-green-400">{winRate}%</div>
-        </div>
-        <div className="bg-slate-900 p-3 rounded-lg border border-slate-800">
-          <div className="text-[10px] text-slate-400 uppercase tracking-wider">1% Risk</div>
-          <div className="text-lg font-bold text-red-400">-${riskAmount.toFixed(2)}</div>
-        </div>
-      </div>
-
-      {/* Log Form */}
-      <form onSubmit={handleLogMission} className="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-3 mb-6">
-        <h2 className="text-sm font-bold text-yellow-500 uppercase tracking-wider">Log Current Position</h2>
-        
-        <div className="flex gap-2">
-          <div className="flex-1">
-            <label className="block text-[11px] text-slate-400 mb-1">Direction</label>
-            <select 
-              value={tradeType} 
-              onChange={(e) => setTradeType(e.target.value)}
-              className={`w-full bg-slate-950 border border-slate-700 rounded p-2 text-xs font-bold outline-none ${tradeType === 'LONG' ? 'text-green-500' : 'text-red-500'}`}
-            >
-              <option value="LONG">LONG (BUY)</option>
-              <option value="SHORT">SHORT (SELL)</option>
-            </select>
-          </div>
-          <div className="w-1/3">
-            <label className="block text-[11px] text-slate-400 mb-1">Grade</label>
-            <select 
-              value={grade} 
-              onChange={(e) => setGrade(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-xs text-white font-bold outline-none"
-            >
-              <option value="A">Grade A</option>
-              <option value="B">Grade B</option>
-              <option value="C">Grade C</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-3 gap-2">
-          <div>
-            <label className="block text-[10px] text-slate-400 mb-1">Entry Price</label>
-            <input 
-              type="number" step="0.001" value={entry} onChange={(e) => setEntry(e.target.value)} placeholder="4079.56"
-              className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-xs font-mono text-white outline-none focus:border-yellow-500"
-            />
-          </div>
-          <div>
-            <label className="block text-[10px] text-slate-400 mb-1">Stop Loss</label>
-            <input 
-              type="number" step="0.001" value={stopLoss} onChange={(e) => setStopLoss(e.target.value)} placeholder="4086.05"
-              className="w-full bg-slate-950 border border-red-900/50 rounded p-2 text-xs font-mono text-white outline-none"
-            />
-          </div>
-          <div>
-            <label className="block text-[10px] text-slate-400 mb-1">Take Profit</label>
-            <input 
-              type="number" step="0.001" value={takeProfit} onChange={(e) => setTakeProfit(e.target.value)} placeholder="4043.59"
-              className="w-full bg-slate-950 border border-green-900/50 rounded p-2 text-xs font-mono text-white outline-none"
-            />
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-[11px] text-slate-400 mb-1">Psychology & Setup Notes</label>
-          <input 
-            type="text" value={note} onChange={(e) => setNote(e.target.value)} placeholder="PDH sweep executed..."
-            className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-xs text-white outline-none"
-          />
-        </div>
-
-        <div className="flex justify-between items-center bg-slate-950 p-2.5 rounded border border-slate-800 text-xs">
-          <div>Lot Size: <span className="text-yellow-400 font-mono font-bold text-sm">{lotSize > 0 ? lotSize : '0.01'}</span></div>
-          <div>Est R:R: <span className="text-blue-400 font-mono font-bold">1:{rrRatio > 0 ? rrRatio : '0.0'}</span></div>
-        </div>
-
-        <button 
-          type="submit" 
-          className="w-full bg-yellow-500 hover:bg-yellow-400 text-slate-950 font-bold py-2 rounded text-xs tracking-wider uppercase transition-all"
-        >
-          Save Mission to Ledger
-        </button>
-      </form>
-
-      {/* Ledger Feed */}
-      <div className="space-y-3">
-        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Recorded Missions</h3>
-        {missions.length === 0 ? (
-          <div className="text-center text-xs text-slate-500 py-6 bg-slate-900/50 rounded-xl border border-slate-800">
-            No missions recorded yet. Log your active trade above.
-          </div>
-        ) : (
-          missions.map((m: any) => (
-            <div key={m.id} className="bg-slate-900 p-3 rounded-xl border border-slate-800 flex justify-between items-center text-xs">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className={`font-bold px-1.5 py-0.5 rounded text-[10px] ${m.type === 'LONG' ? 'bg-green-900/40 text-green-400' : 'bg-red-900/40 text-red-400'}`}>
-                    {m.type}
-                  </span>
-                  <span className="font-mono text-slate-300">Entry: {m.entry}</span>
-                  <span className="text-[10px] bg-slate-800 px-1 rounded text-slate-400">Grade {m.grade}</span>
-                </div>
-                <div className="text-[11px] text-slate-400 mt-1 italic">{m.note}</div>
-              </div>
-              <div className="text-right font-mono">
-                <div className="text-yellow-500 font-bold">{m.lot} lots</div>
-                <div className="text-[11px] text-blue-400">SL: {m.sl}</div>
-              </div>
+      <div ref={ref} className="grid grid-cols-2 gap-3">
+        <Card label="Today's Risk" value={`${risk.toFixed(2)}%`} icon={<ShieldAlert className="h-4 w-4" />} accent="warning" delay={0.05}>
+          <div className="flex items-center gap-2">
+            <div className="flex gap-1">
+              {[0, 1, 2, 3, 4].map((i) => (
+                <span
+                  key={i}
+                  className={`h-3 w-1.5 rounded-full transition-colors duration-500 ${
+                    i < riskLevel ? 'bg-amber-400' : 'bg-white/15'
+                  }`}
+                  style={{ transitionDelay: `${i * 80}ms` }}
+                />
+              ))}
             </div>
-          ))
-        )}
+            <span className="text-[10px] font-medium uppercase tracking-wider text-amber-400/80">
+              {riskLevel >= 4 ? 'High' : riskLevel >= 2 ? 'Moderate' : 'Low'}
+            </span>
+          </div>
+        </Card>
+
+        <Card label="Open Missions" value={`${openCount}`} icon={<Inbox className="h-4 w-4" />} accent="gold" delay={0.1}>
+          <div className="flex gap-3 text-[10px] uppercase tracking-wider">
+            <span className="text-amber-400/80">{stats.active} Active</span>
+            <span className="text-white/35">{stats.planned} Planned</span>
+          </div>
+        </Card>
+
+        <Card label="Today's Confidence" value={`${confidence}%`} icon={<Activity className="h-4 w-4" />} accent="gold" delay={0.15}>
+          <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+            <div
+              className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-gold-300 to-gold-500 transition-all duration-1000 ease-out"
+              style={{ width: `${confidence}%` }}
+            />
+          </div>
+        </Card>
+
+        <Card label="Current Session" value={session.name} icon={<Clock className="h-4 w-4" />} accent="positive" delay={0.2}>
+          <div className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wider text-emerald-400/80">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+            {session.subtitle}
+          </div>
+        </Card>
       </div>
 
+      {/* Streak strip */}
+      <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4 backdrop-blur-sm">
+        <Flame className="h-5 w-5 text-gold-300" />
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-white/40">Current Streak</div>
+          <div className="font-display text-lg font-bold text-white">
+            {stats.currentStreak > 0
+              ? `${stats.currentStreak}W`
+              : stats.currentStreak < 0
+              ? `${Math.abs(stats.currentStreak)}L`
+              : '—'}
+          </div>
+        </div>
+        <div className="ml-auto h-8 w-px bg-white/10" />
+        <div className="flex-1">
+          <div className="text-[10px] uppercase tracking-wider text-white/40">Win Rate</div>
+          <div className="font-display text-lg font-bold text-white">
+            {stats.completed ? `${stats.winRate.toFixed(0)}%` : '—'}
+          </div>
+        </div>
+      </div>
+
+      <Button onClick={onNewMission} className="w-full">
+        <FilePlus2 className="h-4 w-4" />
+        Log New Mission
+        <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+      </Button>
     </div>
   );
 }

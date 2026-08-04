@@ -1,25 +1,24 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import { type ButtonHTMLAttributes, type ReactNode } from 'react';
 
-type Props = React.ButtonHTMLAttributes<HTMLButtonElement> & {
-  children: React.ReactNode;
-  variant?: 'primary' | 'ghost';
-};
+interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: 'primary' | 'ghost' | 'danger';
+  children: ReactNode;
+}
 
-const PrimaryButton: React.FC<Props> = ({ children, variant = 'primary', className = '', ...rest }) => {
+export function Button({ variant = 'primary', children, className = '', ...props }: ButtonProps) {
   const base =
-    'inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-semibold shadow-sm transition focus:outline-none';
+    'group relative inline-flex items-center justify-center gap-2 rounded-full px-6 py-3.5 text-sm font-semibold tracking-wide transition-all duration-300 active:scale-[0.97] disabled:opacity-40 disabled:active:scale-100 disabled:cursor-not-allowed min-h-[48px]';
 
-  const variants: Record<string, string> = {
-    primary: 'bg-gradient-to-r from-aegis-gold-500 to-aegis-gold-400 text-black',
-    ghost: 'bg-transparent border border-black/30 text-gray-200'
-  };
+  const styles =
+    variant === 'primary'
+      ? 'bg-gradient-to-r from-gold-300 to-gold-500 text-black shadow-[0_8px_30px_-8px_rgba(212,175,55,0.55)] hover:shadow-[0_12px_40px_-8px_rgba(212,175,55,0.75)] hover:brightness-110'
+      : variant === 'danger'
+      ? 'border border-red-500/30 bg-red-500/10 text-red-300 hover:bg-red-500/20 hover:border-red-400/50'
+      : 'border border-white/15 bg-white/[0.03] text-white/90 backdrop-blur hover:border-gold-400/50 hover:bg-white/[0.06] hover:text-white';
 
   return (
-    <button className={`${base} ${variants[variant]} ${className}`} {...rest}>
+    <button className={`${base} ${styles} ${className}`} {...props}>
       {children}
     </button>
   );
-};
-
-export default PrimaryButton;
+}
