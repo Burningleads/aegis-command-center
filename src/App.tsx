@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { CheckCircle2, XCircle, Info } from 'lucide-react';
 import { Header } from './components/Header';
 import { BottomNav, type TabId } from './components/BottomNav';
-import { Dashboard } from './components/Dashboard';
+import { Dashboard } from './pages/Dashboard';
 import { NewMissionForm } from './components/NewMissionForm';
 import { MissionHistory } from './components/MissionHistory';
 import { Statistics } from './components/Statistics';
