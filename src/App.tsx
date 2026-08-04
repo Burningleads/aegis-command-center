@@ -1,15 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
-import { CheckCircle2, XCircle, Info } from 'lucide-react';
 import { Header } from './components/Header';
 import { BottomNav, type TabId } from './components/BottomNav';
-import { Dashboard } from './pages/Dashboard';
-import { NewMissionForm } from './components/NewMissionForm';
-import { MissionHistory } from './components/MissionHistory';
-import { Statistics } from './components/Statistics';
+import Dashboard from './pages/Dashboard';
+import NewMissionForm from './pages/MissionLog';
+import MissionHistory from './pages/History';
+import Statistics from './pages/Statistics';
 import { DebriefModal } from './components/DebriefModal';
 import { useMissions, type MissionInput, type DebriefInput } from './hooks/useMissions';
 import { computeStats } from './lib/missions';
-import type { Mission } from './types';
 
 const SUBTITLES: Record<TabId, string> = {
   dashboard: 'Command Center',
@@ -115,9 +113,6 @@ export default function App() {
       {toast && (
         <div className="aegis-toast fixed bottom-24 left-1/2 z-50 -translate-x-1/2">
           <div className="flex items-center gap-2 rounded-full border border-gold-400/30 bg-black/90 px-4 py-2.5 backdrop-blur-xl shadow-[0_8px_30px_-8px_rgba(212,175,55,0.4)]">
-            {toast.kind === 'success' && <CheckCircle2 className="h-4 w-4 text-emerald-400" />}
-            {toast.kind === 'error' && <XCircle className="h-4 w-4 text-red-400" />}
-            {toast.kind === 'info' && <Info className="h-4 w-4 text-gold-300" />}
             <span className="text-sm font-semibold text-white">{toast.msg}</span>
           </div>
         </div>
