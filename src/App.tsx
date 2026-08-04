@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { <span>✓</span><span>✕</span><span>i</span> }
+import { CheckCircle2, XCircle, Info } from 'lucide-react';
 import { Header } from './components/Header';
 import { BottomNav, type TabId } from './components/BottomNav';
 import { Dashboard } from './components/Dashboard';
