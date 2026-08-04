@@ -1,0 +1,36 @@
+# Build artifacts
+dist
+build
+out
+
+# Dependencies
+node_modules
+
+# Development
+.git
+.gitignore
+.env.local
+.env.*.local
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Archive folder (not needed for deployment)
+archive
+
+# Documentation
+docs
